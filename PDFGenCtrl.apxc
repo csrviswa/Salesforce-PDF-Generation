@@ -1,0 +1,23 @@
+public class PDFGenCtrl {
+
+    public String pageData {get;set;}
+    
+    public PageReference loadPageData(){
+        HttpRequest req = new HttpRequest();
+        HttpResponse res = new HttpResponse();
+        Http http = new Http();
+        
+        req.setEndpoint('http://demo3599847.mockable.io/pdf-data');
+        req.setMethod('GET');
+        req.setHeader('Content-Type', 'application/json');  
+        
+        try {
+            res = http.send(req);
+        } catch(System.CalloutException e) {
+            System.debug('Callout error: '+ e);
+        }
+        pageData = res.getBody();
+        return null;
+    }
+    
+}

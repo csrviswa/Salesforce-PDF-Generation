@@ -1,0 +1,75 @@
+<apex:page controller="PDFGenCtrl" action="{!loadPageData}">
+    <apex:includeScript value="https://cdn.jsdelivr.net/npm/chart.js"/>
+    
+	<style>
+        .page{
+        	padding: 10px;
+        }
+        .container {
+        	padding: 20px;
+        }
+    </style>
+    
+    <div class="container">
+        <button onclick="downloadPDF()" style="float:right;">
+            Download PDF
+        </button>
+        <div class="page">
+            <canvas id="myChart"></canvas>
+        </div>
+        
+        <div class="page">
+            <img alt="img" src="/resource/image_content" 
+                 id="p2_img" width="300"/>
+        </div>        
+    </div>
+    
+    <script>
+    	var pageData = '{!JSENCODE(pageData)}';
+    	try{
+            pageData = JSON.parse(pageData);
+            var ctx = document.getElementById('myChart');
+            var myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: pageData.p1_data
+            }); 
+            var p2_img = document.getElementById('p2_img');
+            //p2_img.src = pageData.p2_data;
+        }
+    	catch(e){
+        }
+    
+    	function downloadPDF(){
+            console.log('downloadPDF');
+            var pages = document.getElementsByClassName('page');
+            var pageCount = 0;
+            var scale = 1;
+            var pdf = new jsPDF('l','mm',[263,172]);
+            Array.from(pages).forEach((page, i) => {
+                if(i >0 && i< pages.length){
+                	pdf.addPage();
+            	}
+                domtoimage.toPng(page, {
+					width: page.offsetWidth*scale,
+					height: page.offsetHeight*scale,
+					style: {
+						transform: "scale("+ scale + ")",
+						transformOrigin: "top left",
+						width: page.offsetWidth + "px",
+                        height: page.offsetHeight + "px"             
+                    }                                      
+                }).then((blob) => {
+                	pdf.setPage(i+1);
+                	pdf.addImage(blob, 'PNG', 0, 0, undefined, undefined, i, 'FAST');
+                	pageCount++;
+                	if(pageCount == pages.length){
+                		pdf.save("PDF_Report.pdf");
+            		}
+            	});
+            });
+        }
+    </script>
+    
+    <apex:includeScript value="{!URLFOR($Resource.domimage)}"/>
+    <apex:includeScript value="{!URLFOR($Resource.jspdf)}"/>
+</apex:page>
